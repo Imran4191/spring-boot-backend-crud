@@ -75,5 +75,10 @@ public class ClientController {
 	public ResponseEntity<List<Client>> findByConfirmed() {
 		return clientService.findByConfirmed();
 	}
+	//  http://localhost:8080/api/test
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return new ResponseEntity<>("CI/CD is working! Auto-deployed successfully!", HttpStatus.OK);
+    }
 
 }
