@@ -1,0 +1,45 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Backend Deploy  # ← Display name you wanted
+    runs-on: self-hosted  # ← Fixed: use label instead of runner name
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Stop Backend Service
+        run: sudo systemctl stop backend
+
+      - name: Deploy JAR
+        run: |
+          sudo cp target/spring-boot-jpa-postgresql-1.0.0.jar /opt/backend-app/
+          sudo chown ubuntu:ubuntu /opt/backend-app/spring-boot-jpa-postgresql-1.0.0.jar
+
+      - name: Start Backend Service
+        run: sudo systemctl start backend
+
+      - name: Wait for Application
+        run: sleep 10
+
+      - name: Check Service Status
+        run: sudo systemctl status backend
+
+      - name: Test API
+        run: curl -f http://localhost:8080/api/clients || exit 1
